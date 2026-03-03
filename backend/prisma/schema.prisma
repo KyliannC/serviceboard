@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum AdType {
+  OFFER
+  REQUEST
+}
+
+enum PricingType {
+  FREE
+  HOURLY
+  FIXED
+}
+
+enum AdStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  pseudo    String
+  city      String
+  bio       String?
+  createdAt DateTime @default(now())
+
+  ads       Ad[]
+  messages  Message[]
+}
+
+model Ad {
+  id          Int        @id @default(autoincrement())
+  authorId    Int
+  author      User       @relation(fields: [authorId], references: [id])
+
+  type        AdType
+  title       String
+  description String
+  category    String
+  city        String
+  availability String
+  pricingType PricingType
+  price       Int?
+  modality    String
+  status      AdStatus   @default(DRAFT)
+
+  createdAt   DateTime   @default(now())
+
+  conversations Conversation[]
+}
+
+model Conversation {
+  id        Int      @id @default(autoincrement())
+  adId      Int
+  ad        Ad       @relation(fields: [adId], references: [id])
+
+  user1Id   Int
+  user2Id   Int
+
+  createdAt DateTime @default(now())
+  messages  Message[]
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  senderId       Int
+  sender         User         @relation(fields: [senderId], references: [id])
+
+  content        String
+  createdAt      DateTime     @default(now())
+}
