@@ -22,9 +22,19 @@ app.use("/conversations", conversationsRoutes);
 app.use((req, res) => res.status(404).json({ error: "Not found" }));
 
 // error handler
+// app.use((err, req, res, next) => {
+//   console.error(err);
+//   res.status(500).json({ error: "Server error" });
+// });
+
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: "Server error" });
+  console.error("🔥 ERROR:", err);
+
+  res.status(500).json({
+    error: "Server error",
+    details: err?.message,
+    code: err?.code,
+  });
 });
 
 app.listen(3000, () => console.log("API on http://localhost:3000"));

@@ -8,6 +8,15 @@ function isEmail(s) {
   return typeof s === "string" && s.includes("@") && s.length <= 254;
 }
 
+function normalizeCity(city) {
+  const clean = String(city || "").trim().toLowerCase();
+  if (!clean) return "";
+  return clean
+    .split(/\s+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 router.post("/register", async (req, res, next) => {
   try {
     const { email, password, pseudo, city, bio } = req.body;
@@ -28,7 +37,13 @@ router.post("/register", async (req, res, next) => {
     const hashed = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { email, password: hashed, pseudo: pseudo.trim(), city: city.trim(), bio: bio ?? null },
+      data: {
+        email,
+        password: hashed,
+        pseudo: pseudo.trim(),
+        city: normalizeCity(city),
+        bio: bio ?? null
+      },
       select: { id: true, email: true, pseudo: true, city: true, bio: true, createdAt: true }
     });
 
@@ -69,6 +84,32 @@ router.get("/me", auth, async (req, res, next) => {
       select: { id: true, email: true, pseudo: true, city: true, bio: true, createdAt: true }
     });
     res.json(me);
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.patch("/me", auth, async (req, res, next) => {
+  try {
+    const { bio } = req.body;
+
+    if (bio === undefined) {
+      return res.status(400).json({ error: "Bio is required" });
+    }
+
+    if (bio != null && (typeof bio !== "string" || bio.length > 300)) {
+      return res.status(400).json({ error: "Invalid bio" });
+    }
+
+    const normalizedBio = typeof bio === "string" ? bio.trim() : null;
+
+    const updated = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { bio: normalizedBio || null },
+      select: { id: true, email: true, pseudo: true, city: true, bio: true, createdAt: true }
+    });
+
+    res.json(updated);
   } catch (e) {
     next(e);
   }

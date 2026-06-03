@@ -7,6 +7,16 @@ function isNonEmptyString(v, min = 1, max = 2000) {
   return typeof v === "string" && v.trim().length >= min && v.trim().length <= max;
 }
 
+async function findConversationForUser(convoId, userId, include) {
+  return prisma.conversation.findFirst({
+    where: {
+      id: convoId,
+      OR: [{ user1Id: userId }, { user2Id: userId }]
+    },
+    include
+  });
+}
+
 /**
  * POST /ads/:id/message
  * Body: { content }
@@ -83,7 +93,6 @@ router.get("/", auth, async (req, res, next) => {
 
     const conversations = await prisma.conversation.findMany({
       where: { OR: [{ user1Id: me }, { user2Id: me }] },
-      orderBy: { createdAt: "desc" },
       include: {
         ad: {
           select: { id: true, title: true, type: true, city: true }
@@ -97,22 +106,28 @@ router.get("/", auth, async (req, res, next) => {
     });
 
     // format léger "inbox"
-    const inbox = conversations.map((c) => {
-      const last = c.messages[0] || null;
-      return {
-        id: c.id,
-        ad: c.ad,
-        lastMessage: last
-          ? {
-              id: last.id,
-              content: last.content,
-              createdAt: last.createdAt,
-              sender: last.sender
-            }
-          : null,
-        createdAt: c.createdAt
-      };
-    });
+    const inbox = conversations
+      .map((c) => {
+        const last = c.messages[0] || null;
+        return {
+          id: c.id,
+          ad: c.ad,
+          lastMessage: last
+            ? {
+                id: last.id,
+                content: last.content,
+                createdAt: last.createdAt,
+                sender: last.sender
+              }
+            : null,
+          createdAt: c.createdAt
+        };
+      })
+      .sort((a, b) => {
+        const aTs = Number(new Date(a.lastMessage?.createdAt || a.createdAt));
+        const bTs = Number(new Date(b.lastMessage?.createdAt || b.createdAt));
+        return bTs - aTs;
+      });
 
     res.json(inbox);
   } catch (e) {
@@ -129,22 +144,14 @@ router.get("/:id", auth, async (req, res, next) => {
     const convoId = Number(req.params.id);
     if (!Number.isInteger(convoId)) return res.status(400).json({ error: "Invalid conversation id" });
 
-    const convo = await prisma.conversation.findUnique({
-      where: { id: convoId },
-      include: {
-        ad: { select: { id: true, title: true, type: true, city: true } },
-        messages: {
-          orderBy: { createdAt: "asc" },
-          include: { sender: { select: { id: true, pseudo: true } } }
-        }
+    const convo = await findConversationForUser(convoId, req.user.id, {
+      ad: { select: { id: true, title: true, type: true, city: true } },
+      messages: {
+        orderBy: { createdAt: "asc" },
+        include: { sender: { select: { id: true, pseudo: true } } }
       }
     });
-
     if (!convo) return res.status(404).json({ error: "Conversation not found" });
-
-    const me = req.user.id;
-    const isParticipant = convo.user1Id === me || convo.user2Id === me;
-    if (!isParticipant) return res.status(403).json({ error: "Forbidden" });
 
     res.json(convo);
   } catch (e) {
@@ -166,17 +173,13 @@ router.post("/:id/messages", auth, async (req, res, next) => {
       return res.status(400).json({ error: "Invalid content" });
     }
 
-    const convo = await prisma.conversation.findUnique({ where: { id: convoId } });
+    const convo = await findConversationForUser(convoId, req.user.id);
     if (!convo) return res.status(404).json({ error: "Conversation not found" });
-
-    const me = req.user.id;
-    const isParticipant = convo.user1Id === me || convo.user2Id === me;
-    if (!isParticipant) return res.status(403).json({ error: "Forbidden" });
 
     const message = await prisma.message.create({
       data: {
         conversationId: convoId,
-        senderId: me,
+        senderId: req.user.id,
         content: content.trim()
       }
     });
