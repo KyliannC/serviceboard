@@ -35,40 +35,44 @@ model User {
   bio       String?
   createdAt DateTime @default(now())
 
-  ads       Ad[]
-  messages  Message[]
+  ads                  Ad[]
+  messages             Message[]
+  conversationsAsUser1 Conversation[] @relation("ConversationUser1")
+  conversationsAsUser2 Conversation[] @relation("ConversationUser2")
 }
 
 model Ad {
-  id          Int        @id @default(autoincrement())
-  authorId    Int
-  author      User       @relation(fields: [authorId], references: [id])
+  id       Int  @id @default(autoincrement())
+  authorId Int
+  author   User @relation(fields: [authorId], references: [id])
 
-  type        AdType
-  title       String
-  description String
-  category    String
-  city        String
+  type         AdType
+  title        String
+  description  String
+  category     String
+  city         String
   availability String
-  pricingType PricingType
-  price       Int?
-  modality    String
-  status      AdStatus   @default(DRAFT)
+  pricingType  PricingType
+  price        Int?
+  modality     String
+  status       AdStatus    @default(DRAFT)
 
-  createdAt   DateTime   @default(now())
+  createdAt DateTime @default(now())
 
   conversations Conversation[]
 }
 
 model Conversation {
-  id        Int      @id @default(autoincrement())
-  adId      Int
-  ad        Ad       @relation(fields: [adId], references: [id])
+  id   Int @id @default(autoincrement())
+  adId Int
+  ad   Ad  @relation(fields: [adId], references: [id])
 
-  user1Id   Int
-  user2Id   Int
+  user1Id Int
+  user1   User @relation("ConversationUser1", fields: [user1Id], references: [id])
+  user2Id Int
+  user2   User @relation("ConversationUser2", fields: [user2Id], references: [id])
 
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   messages  Message[]
 }
 
@@ -77,9 +81,9 @@ model Message {
   conversationId Int
   conversation   Conversation @relation(fields: [conversationId], references: [id])
 
-  senderId       Int
-  sender         User         @relation(fields: [senderId], references: [id])
+  senderId Int
+  sender   User @relation(fields: [senderId], references: [id])
 
-  content        String
-  createdAt      DateTime     @default(now())
+  content   String
+  createdAt DateTime @default(now())
 }
