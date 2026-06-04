@@ -39,7 +39,7 @@ export default function CreateAd() {
     availability: "",
     pricingType: "FREE",
     price: "",
-    modality: "ONSITE",
+    modality: "REMOTE",
   });
 
   const [err, setErr] = useState("");
@@ -115,9 +115,9 @@ export default function CreateAd() {
             <div>
               <div style={labelStyle}>Modalité</div>
               <select value={form.modality} onChange={(e) => set("modality", e.target.value)} style={inputStyle}>
-                <option value="ONSITE">Sur place</option>
-                <option value="ONLINE">En ligne</option>
-                <option value="HYBRID">Hybride</option>
+                <option value="REMOTE">À distance</option>
+                <option value="AT_PROVIDER">Chez le prestataire</option>
+                <option value="AT_CUSTOMER">Chez le client</option>
               </select>
             </div>
           </div>

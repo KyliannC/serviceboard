@@ -3,35 +3,16 @@ const prisma = require("../prisma");
 const auth = require("../middlewares/auth");
 const requireAdOwner = require("../middlewares/requireAdOwner");
 const authOptional = require("../middlewares/authOptional");
-
-const VALID_TYPES = ["OFFER", "REQUEST"];
-const VALID_PRICING_TYPES = ["FREE", "HOURLY", "FIXED"];
-const VALID_MODALITIES = ["ONSITE", "ONLINE", "HYBRID"];
-const VALID_CATEGORIES = [
-  "Education",
-  "Informatique",
-  "Langues",
-  "Design",
-  "Marketing",
-  "Business",
-  "Musique",
-  "Sport",
-  "Maison",
-  "Autre",
-];
-
-function normalizeCity(city) {
-  const clean = String(city || "").trim().toLowerCase();
-  if (!clean) return "";
-  return clean
-    .split(/\s+/)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
-function asTrimmedString(value) {
-  return typeof value === "string" ? value.trim() : "";
-}
+const {
+  VALID_TYPES,
+  VALID_PRICING_TYPES,
+  VALID_MODALITIES,
+  VALID_CATEGORIES,
+  normalizeCity,
+  asTrimmedString,
+  buildPublishedAdsWhere,
+  buildAdsOrderBy,
+} = require("../utils/validateAdInput");
 
 router.post("/:id/unpublish", auth, requireAdOwner, async (req, res, next) => {
   try {
@@ -303,30 +284,8 @@ router.get("/mine", auth, async (req, res, next) => {
 
 router.get("/", async (req, res, next) => {
   try {
-    const { q, type, category, city, sort } = req.query;
-
-    const where = {
-        status: "PUBLISHED",
-      };
-
-      if (type) where.type = String(type);
-
-      // BONUS: case-insensitive aussi sur city/category
-      if (category) where.category = String(category);
-      if (city) where.city = normalizeCity(String(city));
-
-      if (q) {
-        where.OR = [
-          { title: { contains: String(q), mode: "insensitive" } },
-          { description: { contains: String(q), mode: "insensitive" } },
-        ];
-      }
-
-    // tri
-    let orderBy = { createdAt: "desc" }; 
-    if (sort === "price_asc") orderBy = [{ price: "asc" }, { createdAt: "desc" }];
-    if (sort === "price_desc") orderBy = [{ price: "desc" }, { createdAt: "desc" }];
-    if (sort === "recent") orderBy = { createdAt: "desc" };
+    const where = buildPublishedAdsWhere(req.query);
+    const orderBy = buildAdsOrderBy(req.query.sort);
 
     const ads = await prisma.ad.findMany({
       where,

@@ -125,7 +125,7 @@ export default function AdDetails() {
       category: ad.category || "",
       city: ad.city || "",
       availability: ad.availability || "",
-      modality: ad.modality || "ONSITE",
+      modality: ad.modality || "REMOTE",
       pricingType: ad.pricingType || "FREE",
       price: ad.price ?? "",
     });
@@ -438,9 +438,9 @@ export default function AdDetails() {
                         onChange={(e) => setField("modality", e.target.value)}
                         style={{ padding: 10, borderRadius: 12, border: "1px solid #ddd", background: "white" }}
                       >
-                        <option value="ONSITE">Sur place</option>
-                        <option value="ONLINE">En ligne</option>
-                        <option value="HYBRID">Hybride</option>
+                        <option value="REMOTE">À distance</option>
+                        <option value="AT_PROVIDER">Chez le prestataire</option>
+                        <option value="AT_CUSTOMER">Chez le client</option>
                       </select>
 
                       <select

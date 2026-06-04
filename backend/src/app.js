@@ -28,14 +28,11 @@ app.use((req, res) => res.status(404).json({ error: "Not found" }));
 // });
 
 app.use((err, req, res, next) => {
-  console.error("🔥 ERROR:", err);
+  console.error("Server error:", err);
 
   res.status(500).json({
-    error: "Server error",
-    details: err?.message,
-    code: err?.code,
+    error: "Server error"
   });
 });
 
 app.listen(3000, () => console.log("API on http://localhost:3000"));
-
