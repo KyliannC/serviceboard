@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../api/axios";
+import { CATEGORY_OPTIONS } from "../constants/categories";
 import { useAuth } from "../auth/useAuth";
 
 function normalizeCity(value) {
@@ -412,12 +413,17 @@ export default function AdDetails() {
                         style={{ padding: 10, borderRadius: 12, border: "1px solid #ddd", resize: "vertical" }}
                       />
 
-                      <input
+                      <select
                         value={editForm.category}
                         onChange={(e) => setField("category", e.target.value)}
-                        placeholder="Catégorie"
-                        style={{ padding: 10, borderRadius: 12, border: "1px solid #ddd" }}
-                      />
+                        style={{ padding: 10, borderRadius: 12, border: "1px solid #ddd", background: "white" }}
+                      >
+                        {CATEGORY_OPTIONS.map((cat) => (
+                          <option key={cat} value={cat}>
+                            {cat}
+                          </option>
+                        ))}
+                      </select>
 
                       <input
                         value={editForm.city}

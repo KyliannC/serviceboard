@@ -3,19 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import api from "../api/axios";
 import { useAuth } from "../auth/useAuth";
-
-const CATEGORY_OPTIONS = [
-  "Education",
-  "Informatique",
-  "Langues",
-  "Design",
-  "Marketing",
-  "Business",
-  "Musique",
-  "Sport",
-  "Maison",
-  "Autre",
-];
+import { CATEGORY_OPTIONS } from "../constants/categories";
 
 function normalizeCity(value) {
   const clean = String(value || "").trimStart().toLowerCase();

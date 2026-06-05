@@ -4,6 +4,7 @@ import api from "../api/axios";
 import { useAuth } from "../auth/useAuth";
 import { useNavigate } from "react-router-dom";
 import { formatCity } from "../utils/city";
+import { CATEGORY_OPTIONS } from "../constants/categories";
 
 function normalizeCity(value) {
   const clean = String(value || "").trimStart().toLowerCase();
@@ -198,12 +199,18 @@ export default function Ads() {
           onChange={(e) => setCity(normalizeCity(e.target.value))}
           style={{ padding: 10, borderRadius: 12, border: "1px solid #ddd" }}
         />
-        <input
-          placeholder="Catégorie"
+        <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          style={{ padding: 10, borderRadius: 12, border: "1px solid #ddd" }}
-        />
+          style={{ padding: 10, borderRadius: 12, border: "1px solid #ddd", background: "white" }}
+        >
+          <option value="">Toutes les catégories</option>
+          {CATEGORY_OPTIONS.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value)}
