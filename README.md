@@ -1,8 +1,14 @@
 # ServiceBoard
 
-ServiceBoard est une application web full JavaScript de type mini Craiglist pour publier, consulter et rechercher des annonces de services.
+ServiceBoard est une application web full JavaScript de type mini Craigslist permettant de publier, consulter et rechercher des annonces de services.
 
-Un utilisateur peut proposer un service (`OFFER`) ou rechercher un service (`REQUEST`). La mise en relation se fait via une messagerie interne liée aux annonces. L'application ne gere pas le paiement en ligne.
+Un utilisateur peut proposer un service (`OFFER`) ou rechercher un service (`REQUEST`). La mise en relation se fait via une messagerie interne liee aux annonces. L'application ne gere pas le paiement en ligne.
+
+## Application en ligne
+
+- Front-end : https://serviceboard-la2s.vercel.app
+- API : https://serviceboard-duvr.onrender.com
+- Verification API : https://serviceboard-duvr.onrender.com/health
 
 ## Stack technique
 
@@ -11,7 +17,7 @@ Un utilisateur peut proposer un service (`OFFER`) ou rechercher un service (`REQ
 - Node.js
 - Express
 - Prisma ORM
-- SQLite
+- PostgreSQL
 - JWT pour l'authentification
 - bcrypt pour le hash des mots de passe
 
@@ -53,21 +59,22 @@ cd backend
 npm install
 ```
 
-### 2. Configurer l'environnement back-end
+### 2. Configurer PostgreSQL et l'environnement back-end
 
-Creer un fichier `backend/.env` :
+Creer une base PostgreSQL, puis copier `backend/.env.example` vers `backend/.env` et renseigner :
 
 ```env
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://user:password@localhost:5432/serviceboard"
 JWT_SECRET="change-this-secret"
+FRONTEND_URL="http://localhost:5173"
 ```
 
 ### 3. Initialiser la base de donnees
 
 ```bash
 cd backend
-npm run prisma:migrate
-npm run prisma:gen
+npm run prisma:deploy
+npm run build
 ```
 
 ### 4. Installer les dependances du front-end
@@ -75,6 +82,12 @@ npm run prisma:gen
 ```bash
 cd frontend
 npm install
+```
+
+Creer un fichier `frontend/.env` :
+
+```env
+VITE_API_URL="http://localhost:3000"
 ```
 
 ## Lancement du projet
@@ -109,20 +122,12 @@ http://localhost:5173
 
 ## Comptes de test
 
-Si la base de donnees est vide, creer ces comptes via la page d'inscription ou via l'API `POST /auth/register`.
+Ces comptes sont disponibles sur l'application de production :
 
-| Role | Email | Mot de passe | Pseudo | Ville |
-| --- | --- | --- | --- | --- |
-| Utilisateur 1 | `user1@mail.com` | `password123` | `user1` | `Paris` |
-| Utilisateur 2 | `user2@mail.com` | `password123` | `user2` | `Lyon` |
-
-Exemple de creation via API :
-
-```bash
-curl -X POST http://localhost:3000/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user1@mail.com","password":"password123","pseudo":"user1","city":"Paris","bio":"Compte de test"}'
-```
+| Role | Email | Mot de passe |
+| --- | --- | --- |
+| Utilisateur 1 | `test@test.com` | `testtest` |
+| Utilisateur 2 | `test1@test.com` | `testtest` |
 
 ## Fonctionnalites realisees
 
@@ -176,7 +181,7 @@ curl -X POST http://localhost:3000/auth/register \
 - Controle d'acces sur les routes protegees
 - Controle proprietaire pour modifier, supprimer, publier et depublier une annonce
 - Gestion des erreurs HTTP principales : `401`, `403`, `404`
-- Donnees persistees en base SQLite
+- Donnees persistees en base PostgreSQL
 
 ## Bonus
 
@@ -278,6 +283,38 @@ Relations :
 | `GET` | `/conversations/:id` | Voir une conversation |
 | `POST` | `/conversations/:id/messages` | Envoyer un message dans une conversation |
 
+## Deploiement
+
+### Back-end Render
+
+```text
+Root Directory: backend
+Build Command: npm install && npm run build && npm run prisma:deploy
+Start Command: npm start
+```
+
+Variables d'environnement :
+
+```text
+DATABASE_URL
+JWT_SECRET
+FRONTEND_URL
+```
+
+### Front-end Vercel
+
+```text
+Root Directory: frontend
+Build Command: npm run build
+Output Directory: dist
+```
+
+Variable d'environnement :
+
+```text
+VITE_API_URL=https://serviceboard-duvr.onrender.com
+```
+
 ## Verification
 
 Build front-end :
@@ -294,3 +331,9 @@ cd backend
 npx prisma validate
 ```
 
+Tests back-end :
+
+```bash
+cd backend
+npm test
+```

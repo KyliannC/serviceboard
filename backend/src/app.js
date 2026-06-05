@@ -8,7 +8,8 @@ const conversationsRoutes = require("./routes/conversations.routes");
 
 const app = express();
 const port = process.env.PORT || 3000;
-const allowedOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
+const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+const allowedOrigin = new URL(frontendUrl).origin;
 
 app.use(cors({ origin: allowedOrigin, credentials: false }));
 app.use(express.json());
